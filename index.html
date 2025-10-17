@@ -5,21 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client</title>
 </head>
+<script>
+"use strict";
+function loginServer(){
+ let user=document.getElementById("nome").value;
+ let pass=document.getElementById("password").value;
+ let LOGIN ="log|"+user+"|"+pass;
+ ws.send(LOGIN) ;
+}
+  
+
+    let ws = new WebSocket("ws://10.1.0.52:8090/chat25/5i1");
+    
+    ws.onmessage = gestoreRicezione;
+
+
+    function inviaAlServer(){
+        let messaggioDaInviare = document.getElementById("msg").value;
+        let user=document.getElementById("nome").value;
+        let mes="msg|"+user+"|"+"2025-10-07 T 10:32:10 Z"+"|"+messaggioDaInviare;
+        ws.send( mes );  
+    }
+      function gestoreRicezione(messaggioRicevuto){
+        console.log(messaggioRicevuto.data);
+        document.getElementById("ricezione").textContent += messaggioRicevuto.data + "\n"; 
+    }
+    function chiudiLaConnessione(){
+        ws.close(); 
+    }
+</script>
 <body>
-    <form>
-        inserisci nome
-        <input type="text" >
-        <br>
-        <br>
-        inserisci password
-        <input type="text" >
-        <br>
-        <br>
-        login
-        <input type="button">
-
-
-    </form>
+    <label>nome</label>
+    <input id="nome" type="text"><br>
+    <label>password</label>
+    <input id="password" type="text">
+    <button onclick="loginServer()">login</button><br>
+  <textarea id="ricezione" readonly></textarea><br>
+  <input id="msg" type="text">
+  <button onClick="inviaAlServer()">invia!</button>
+  <button onClick="chiudiLaConnessione()">chiudi</button>
     
 </body>
 </html>
