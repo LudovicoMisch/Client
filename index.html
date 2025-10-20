@@ -1,49 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #chatArea { display: none; margin-top: 15px; }
+    textarea { width: 100%; height: 200px; }
+    input[type="text"], input[type="password"] { margin: 5px 0; }
+  </style>
 </head>
-<script>
-"use strict";
-function loginServer(){
- let user=document.getElementById("nome").value;
- let pass=document.getElementById("password").value;
- let LOGIN ="log|"+user+"|"+pass;
- ws.send(LOGIN) ;
-}
-  
+<body>
+
+  <div id="loginArea">
+    <label>Nome</label><br>
+    <input id="nome" type="text"><br>
+    <label>Password</label><br>
+    <input id="password" type="text"><br>
+    <button onclick="loginServer()">Login</button>
+  </div>
+
+  <div id="chatArea">
+    <textarea id="ricezione" readonly></textarea><br>
+    <input id="msg" type="text" placeholder="Scrivi un messaggio...">
+    <button onClick="inviaAlServer()">Invia</button>
+    <button onClick="chiudiLaConnessione()">Chiudi</button>
+  </div>
+
+  <script>
+    "use strict";
 
     let ws = new WebSocket("ws://10.1.0.52:8090/chat25/5i1");
-    
     ws.onmessage = gestoreRicezione;
-
-
-    function inviaAlServer(){
-        let messaggioDaInviare = document.getElementById("msg").value;
-        let user=document.getElementById("nome").value;
-        let mes="msg|"+user+"|"+"2025-10-07 T 10:32:10 Z"+"|"+messaggioDaInviare;
-        ws.send( mes );  
-    }
-      function gestoreRicezione(messaggioRicevuto){
-        console.log(messaggioRicevuto.data);
-        document.getElementById("ricezione").textContent += messaggioRicevuto.data + "\n"; 
-    }
-    function chiudiLaConnessione(){
-        ws.close(); 
-    }
-</script>
-<body>
-    <label>nome</label>
-    <input id="nome" type="text"><br>
-    <label>password</label>
-    <input id="password" type="text">
-    <button onclick="loginServer()">login</button><br>
-  <textarea id="ricezione" readonly></textarea><br>
-  <input id="msg" type="text">
-  <button onClick="inviaAlServer()">invia!</button>
-  <button onClick="chiudiLaConnessione()">chiudi</button>
     
+
+    function loginServer() {
+      let user = document.getElementById("nome").value;
+      let pass = document.getElementById("password").value;
+
+      
+
+      let LOGIN = "log|" + user + "|" + pass;
+      ws.send(LOGIN);
+
+
+    }
+
+     function gestoreRicezione(messaggioRicevuto) {
+      let ricezione = document.getElementById("ricezione");
+      ricezione.textContent += messaggioRicevuto.data + "\n";
+       let data = messaggioRicevuto.data;
+      console.log(data);
+
+      
+      
+       if (data === "rlo|login errato") {
+        alert("Login errato! Riprova.");
+      }
+    
+      else {
+        document.getElementById("ricezione").textContent += data + "\n";
+         document.getElementById("loginArea").style.display = "none";
+         document.getElementById("chatArea").style.display = "block";
+      }
+      
+    }
+
+    function inviaAlServer() {
+      let messaggioDaInviare = document.getElementById("msg").value;
+      let user = document.getElementById("nome").value;
+
+
+      let timestamp = new Date().toISOString();
+      let mes = "msg|" + user + "|" + timestamp + "|" + messaggioDaInviare;
+
+      ws.send(mes);
+      document.getElementById("msg").value = "";
+    }
+
+   
+
+    function chiudiLaConnessione() {
+      ws.close();
+      document.getElementById("chatArea").style.display = "none";
+      document.getElementById("loginArea").style.display = "block";
+    }
+  </script>
 </body>
 </html>
