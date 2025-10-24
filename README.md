@@ -1,7 +1,6 @@
 avviare una chat client-server in linguaggio html partendo dal login inserendo:
 username
 password
-login
 e il messaggio di accesso riusciuto o negato
 
 spiegazione delle funzioni svolte:
