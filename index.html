@@ -1,25 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Chat</title>
+  <style>
+    body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 20px;
+    background: #f0f2f5;
+  }
+
+  #loginArea {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    margin: auto;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  #chatArea {
+    display: none;
+    margin: 0 auto;
+    margin-top: 20px;
+    max-width: 600px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  #ricezione {
+    height: 300px;
+    overflow-y: auto;
+    background: #81b2f6;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+
+  
+  .msg {
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    display: inline-block;
+    max-width: 80%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  
+
+  input[type="text"], input[type="password"] {
+    width: calc(100% - 10px);
+    margin: 5px 0;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  button {
+    padding: 8px 12px;
+    border: none;
+    background: #4a90e2;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  button:hover {
+    background: #357ac9;
+  }
+  </style>
 </head>
 <body>
-    <form>
-        inserisci nome
-        <input type="text" >
-        <br>
-        <br>
-        inserisci password
-        <input type="text" >
-        <br>
-        <br>
-        login
-        <input type="button">
 
+  <div id="loginArea">
+    <label>Nome</label><br>
+    <input id="nome" type="text"><br>
+    <label>Password</label><br>
+    <input id="password" type="text"><br>
+    <button onclick="loginServer()">Login</button>
+  </div>
 
-    </form>
+  <div id="chatArea">
+    <div id="ricezione" readonly></div><br>
+    <input id="msg" type="text" placeholder="Scrivi un messaggio...">
+    <button onClick="inviaAlServer()">Invia</button>
+    <button onClick="chiudiLaConnessione()">Chiudi</button>
+  </div>
+
+  <script>
+    "use strict";
+
+    let ws = new WebSocket("ws://10.1.0.52:8090/chat25/5i1");
+    ws.onmessage = gestoreRicezione;
     
+
+    function loginServer() {
+      let user = document.getElementById("nome").value;
+      let pass = document.getElementById("password").value;
+
+      
+
+      let LOGIN = "log|" + user + "|" + pass;
+      ws.send(LOGIN);
+
+
+    }
+
+     function gestoreRicezione(messaggioRicevuto) {
+      let ricezione = document.getElementById("ricezione");
+   
+       let data = messaggioRicevuto.data;
+      console.log(data);
+      if(data ==="rlo|login effettuato"){
+          document.getElementById("loginArea").style.display = "none";
+         document.getElementById("chatArea").style.display = "block";
+         return;
+      }
+       if (data === "rlo|login errato") {
+        alert("Login errato! Riprova.");
+      }
+    
+      else {
+       
+         document.getElementById("loginArea").style.display = "none";
+         document.getElementById("chatArea").style.display = "block";
+      }
+       if (data.startsWith("msg|")) {
+        let parti = data.split("|");
+        let mittente = parti[1];
+        let timestamp = parti[2];
+        let messaggio = parti.slice(3).join("|"); 
+
+        
+        let dataOra = new Date().toLocaleString("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+       
+
+        ricezione.textContent += `${mittente}: ${messaggio} (${dataOra})\n`;
+      }
+      ricezione.scrollTop = ricezione.scrollHeight;
+      
+    }
+
+    function inviaAlServer() {
+      let messaggioDaInviare = document.getElementById("msg").value;
+      let user = document.getElementById("nome").value;
+
+
+      let timestamp = new Date().toISOString();
+      let mes = "msg|" + user + "|" + timestamp + "|" + messaggioDaInviare;
+
+      ws.send(mes);
+      document.getElementById("msg").value = "";
+    }
+
+   
+
+    function chiudiLaConnessione() {
+      ws.close();
+      document.getElementById("chatArea").style.display = "none";
+      document.getElementById("loginArea").style.display = "block";
+    }
+  </script>
 </body>
 </html>
