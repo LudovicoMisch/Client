@@ -80,6 +80,7 @@
   button:hover {
     background: #357ac9;
   }
+  
   </style>
 </head>
 <body>
@@ -154,7 +155,7 @@
     });
        
 
-        ricezione.textContent += `${mittente}: ${messaggio} (${dataOra})\n`;
+        ricezione.innerHTML += `${mittente}: ${messaggio} <span style="color: green; font-size: 9px;">(${dataOra})</span>\n`;
       }
       ricezione.scrollTop = ricezione.scrollHeight;
       
